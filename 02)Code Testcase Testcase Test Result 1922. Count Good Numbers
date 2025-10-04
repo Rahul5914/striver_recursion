@@ -1,0 +1,160 @@
+Let’s tackle 1922. Count Good Numbers step by step with a full framework, inline dry run, and intuition. We'll solve it using modular exponentiation for efficiency.
+
+Problem Statement:
+
+A "good number" of length n is defined as:
+
+Digits at even indices (0-based) are even: {0, 2, 4, 6, 8} → 5 choices.
+
+Digits at odd indices are prime: {2, 3, 5, 7} → 4 choices.
+
+Given n, count all good numbers modulo 
+10
+9
++
+7
+10
+9
++7.
+
+Example:
+
+Input: n = 1
+Output: 5
+Explanation: Only even index 0 exists → digits {0,2,4,6,8} → 5 numbers
+
+Intuition:
+
+Number of even positions: ceil(n/2)
+
+Number of odd positions: floor(n/2)
+
+Result formula:
+
+count
+=
+5
+even positions
+×
+4
+odd positions
+m
+o
+d
+ 
+ 
+(
+10
+9
++
+7
+)
+count=5
+even positions
+×4
+odd positions
+mod(10
+9
++7)
+
+For large n, we use fast exponentiation to compute powers modulo 10^9+7.
+
+Step-by-step C++ Implementation with Inline Dry Run
+#include <bits/stdc++.h>
+using namespace std;
+
+class Solution {
+public:
+    int countGoodNumbers(long long n) {
+        long long MOD = 1e9 + 7;
+
+        // Fast modular exponentiation function
+        auto power = [&](long long x, long long y, long long mod) -> long long {
+            long long result = 1;
+            while(y > 0) {
+                // Dry run: if y = 5, result=1, x=5 initially
+                if(y % 2 == 1) { // if current power bit is 1
+                    result = (result * x) % mod;  
+                    // Dry run: result = 1*5 = 5 when y=1 (example)
+                }
+                x = (x * x) % mod; 
+                // Dry run: x = 5*5 = 25, then 25*25=625 ... etc
+                y /= 2; // move to next bit in binary exponent
+                // Dry run: y=5 -> y=2 -> y=1 -> y=0
+            }
+            return result;
+        };
+
+        long long even_pos = (n + 1) / 2; // number of even indices
+        long long odd_pos = n / 2;        // number of odd indices
+
+        // Dry run for n=4:
+        // even_pos = (4+1)/2 = 2, odd_pos = 4/2 = 2
+        // count = 5^2 * 4^2 = 25 * 16 = 400
+
+        long long ans = (power(5, even_pos, MOD) * power(4, odd_pos, MOD)) % MOD;
+        return ans;
+    }
+};
+
+int main() {
+    Solution sol;
+    cout << sol.countGoodNumbers(1) << "\n"; // Output: 5
+    cout << sol.countGoodNumbers(4) << "\n"; // Output: 400
+}
+
+Dry Run Example:
+
+n = 4
+
+Indices: 0, 1, 2, 3
+
+Even indices → 0,2 → 2 positions → 5 choices each → 
+5
+2
+=
+25
+5
+2
+=25
+
+Odd indices → 1,3 → 2 positions → 4 choices each → 
+4
+2
+=
+16
+4
+2
+=16
+
+Total → 25 * 16 = 400
+
+n = 1
+
+Only index 0 (even) → 5 choices → 5
+
+Complexity Analysis:
+
+Time Complexity: 
+𝑂
+(
+log
+⁡
+𝑛
+)
+O(logn) due to fast exponentiation
+
+Space Complexity: 
+𝑂
+(
+1
+)
+O(1)
+
+Key Tricks / Patterns:
+
+Even-Odd split in positions → leads to powers of 5 and 4.
+
+Fast exponentiation is essential for very large n (up to 10^15).
+
+Modular multiplication at each step avoids overflow.
