@@ -1,0 +1,302 @@
+Let’s solve Leetcode 50. Pow(x, n) step by step with full framework, intuition, and inline dry run. We’ll use the example:
+
+x = 2.0, n = 10 → output should be 1024.0.
+
+🔹 Problem Statement
+Implement pow(x, n) → compute 
+𝑥
+𝑛
+x 
+n
+  efficiently.
+
+Constraints:
+
+Can’t just multiply x n times for large n → time limit exceeds.
+
+Handle negative powers: 
+𝑥
+−
+𝑛
+=
+1
+/
+𝑥
+𝑛
+x 
+−n
+ =1/x 
+n
+ .
+
+𝑛
+n can be 0 → 
+𝑥
+0
+=
+1
+x 
+0
+ =1.
+
+🔹 Intuition / Approach
+We can solve this efficiently using binary exponentiation (Exponentiation by squaring):
+
+Base Cases:
+
+𝑛
+=
+0
+⇒
+1
+n=0⇒1
+
+𝑛
+=
+1
+⇒
+𝑥
+n=1⇒x
+
+𝑛
+<
+0
+⇒
+1
+/
+𝑝
+𝑜
+𝑤
+(
+𝑥
+,
+−
+𝑛
+)
+n<0⇒1/pow(x,−n)
+
+Recursive Case:
+
+Split power by half:
+
+𝑥
+𝑛
+=
+{
+(
+𝑥
+𝑛
+/
+2
+)
+2
+if n even
+(
+𝑥
+𝑛
+/
+2
+)
+2
+∗
+𝑥
+if n odd
+x 
+n
+ ={ 
+(x 
+n/2
+ ) 
+2
+ 
+(x 
+n/2
+ ) 
+2
+ ∗x
+​
+  
+if n even
+if n odd
+​
+ 
+This reduces time complexity from O(n) → O(log n).
+
+🔹 Full C++ Code with Inline Dry Run
+We’ll do example x = 2, n = 10.
+
+cpp
+Copy code
+class Solution {
+public:
+    double myPow(double x, int n) {
+        // ---------------- Step 1: Handle negative powers ----------------
+        // Example: n = 10, positive → no change
+        long long N = n; // use long long to handle INT_MIN
+        if(N < 0) {
+            x = 1 / x;   // flip x
+            N = -N;      // make power positive
+            // Dry run: n=-2, x=2 -> x=1/2=0.5, N=2
+        }
+
+        double result = 1.0; // initialize result
+
+        // ---------------- Step 2: Binary Exponentiation Loop ----------------
+        while(N > 0) {
+            // Check if current power is odd
+            // Dry run first iteration: N=10, even, skip multiply
+            if(N % 2 == 1) {
+                result *= x; // multiply result by current x
+                // Dry run: N=5, x=2 -> result = result * 2
+            }
+
+            x *= x;   // square the base
+            // Dry run: N=10, x=2 -> x=4 for next iteration
+
+            N /= 2;   // divide power by 2
+            // Dry run: N=10 -> N=5
+        }
+
+        return result;
+    }
+};
+🔹 Dry Run for x = 2, n = 10
+Step	N	x	result	Explanation
+0	10	2	1	Initial setup
+1	10	4	1	N even → square x=2*2=4, N/=2 → N=5
+2	5	16	4	N odd → result*=x=14=4, x=x → x=16, N/=2 → N=2
+3	2	256	4	N even → x*=x=16*16=256, N/=2 → N=1
+4	1	65536	1024	N odd → result*=x=4256=1024, x=x=65536, N/=2 → N=0
+End	0	-	1024	Done, return 1024
+
+✅ Output: 1024.0
+
+🔹 Complexity
+Time: O(log n) → divide power by 2 each step
+
+Space: O(1) (iterative version)
+
+🔹 Key Takeaways
+Always handle negative powers first.
+
+Use long long for n to avoid overflow when n = INT_MIN.
+
+Binary exponentiation reduces complexity drastically.
+
+Loop approach avoids recursion stack overflow.
+
+
+
+
+Let’s do the recursive version of pow(x, n) with inline dry run and explanation.
+
+We’ll use the same example: x = 2, n = 10 → output = 1024.0.
+
+🔹 Recursive Approach: Intuition
+Base Cases:
+
+𝑛
+=
+0
+⇒
+1
+n=0⇒1
+
+𝑛
+=
+1
+⇒
+𝑥
+n=1⇒x
+
+Handle negative powers:
+
+𝑥
+−
+𝑛
+=
+1
+/
+𝑥
+𝑛
+x 
+−n
+ =1/x 
+n
+ 
+
+Recursive Step:
+
+Compute half power first: half = myPow(x, n/2)
+
+If n even → result = half * half
+
+If n odd → result = half * half * x
+
+This also gives O(log n) time.
+
+🔹 Recursive Code with Inline Dry Run
+cpp
+Copy code
+class Solution {
+public:
+    double myPow(double x, int n) {
+        // ---------------- Step 1: Handle negative powers ----------------
+        // Example: n = 10, positive → no change
+        long long N = n; 
+        if(N < 0) {
+            x = 1 / x; 
+            N = -N; 
+            // Dry run: n=-2, x=2 -> x=0.5, N=2
+        }
+
+        return powHelper(x, N);
+    }
+
+private:
+    double powHelper(double x, long long n) {
+        // ---------------- Step 2: Base cases ----------------
+        if(n == 0) return 1;    // x^0 = 1
+        if(n == 1) return x;    // x^1 = x
+
+        // ---------------- Step 3: Recursive call ----------------
+        double half = powHelper(x, n / 2);
+        // Dry run: n=10 -> powHelper(2,5) called
+        // Dry run: n=5 -> powHelper(2,2) called
+        // Dry run: n=2 -> powHelper(2,1) returns 2
+
+        // ---------------- Step 4: Combine results ----------------
+        if(n % 2 == 0)
+            return half * half;       // even power
+            // Dry run: n=2 -> half=2 -> return 2*2=4
+        else
+            return half * half * x;   // odd power
+            // Dry run: n=5 -> half=4 -> return 4*4*2=32
+    }
+};
+🔹 Dry Run for x=2, n=10
+Recursive call tree:
+
+rust
+Copy code
+myPow(2,10)
+ └─ powHelper(2,10)
+       ├─ half = powHelper(2,5)
+       │      └─ half = powHelper(2,2)
+       │              └─ half = powHelper(2,1) -> returns 2
+       │      n=2 even -> 2*2=4
+       │      n=5 odd  -> 4*4*2=32
+       n=10 even -> 32*32=1024
+✅ Output: 1024.0
+
+🔹 Complexity
+Time: O(log n) → divide n by 2 each recursive call
+
+Space: O(log n) → recursion stack
+
+🔹 Key Takeaways
+Recursion is elegant and matches the mathematical definition.
+
+Always handle negative n using 1/x trick.
+
+Combine half powers depending on odd/even.
