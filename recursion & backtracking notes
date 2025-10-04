@@ -1,0 +1,102 @@
+# Recursion vs Backtracking – Interview Cheat Sheet
+
+## 1️⃣ Overview
+
+| Feature | Recursion | Backtracking |
+|---------|-----------|--------------|
+| Function calls itself | ✅ Yes | ✅ Yes |
+| Explores multiple choices | ❌ No | ✅ Yes |
+| Undo a choice after recursion | ❌ No | ✅ Yes |
+| Purpose | Solve **one subproblem** | Explore **all valid solutions / combinatorial** |
+| Typical Problems | Fibonacci, Factorial, Binary Tree DFS, Binary Search, Tower of Hanoi | Generate Parentheses, N-Queens, Sudoku, Permutations, Subsets, Combination Sum |
+| Result | Single answer | All valid answers |
+| State changes | Usually none or irrelevant | Maintain state (string, array, board) and revert after recursion |
+| Time Complexity | Often polynomial / O(n) | Often exponential / O(2^n, n!) |
+| Key Question to Identify | “Am I just solving smaller subproblem?” | “Do I need to explore all possibilities and undo choices?” |
+| Mnemonic | Solve → Recur | Try → Explore → Undo → Backtrack |
+
+---
+
+## 2️⃣ Common Recursion Questions
+
+| Question | Difficulty | Notes |
+|----------|------------|------|
+| Fibonacci Number | Easy | Single path recursion |
+| Factorial | Easy | Classic recursion |
+| Binary Search (Recursive) | Easy | Divide & conquer |
+| Sum of Array / N numbers | Easy | Base + recursive call |
+| Power(x, n) | Easy-Medium | Divide & conquer |
+| Tower of Hanoi | Medium | Classic recursion |
+| Tree Traversals (DFS, Max Depth, Diameter) | Easy-Medium | Solve subtrees recursively |
+
+**Pattern Recognition:**  
+- Usually **one path** is explored at a time  
+- Recursion tree may have overlapping subproblems → consider **memoization**  
+- Focused on **computing a single answer**
+
+---
+
+## 3️⃣ Common Backtracking Questions
+
+| Question | Difficulty | Notes |
+|----------|------------|------|
+| Generate Parentheses | Medium | Two counters → open/close |
+| N-Queens | Hard | Place queens, backtrack invalid placements |
+| Sudoku Solver | Hard | Grid, try all numbers in empty cell |
+| Word Search | Medium | Explore 4 directions, mark visited |
+| Permutations / Unique Permutations | Medium | Explore all orderings |
+| Combinations / Subsets | Medium | Include/exclude each element |
+| Combination Sum / II | Medium | DFS/backtracking + pruning |
+| Rat in a Maze / All Paths | Medium | Explore all paths recursively |
+| Palindrome Partitioning | Medium | DFS/backtracking for string partitions |
+
+**Pattern Recognition:**  
+- Multiple choices at each step  
+- Must **undo the choice** after recursion → “backtrack”  
+- Explore **all possible valid solutions**  
+- Often **exponential time complexity**, pruning may help  
+
+---
+
+## 4️⃣ Quick Identification Trick
+
+> After recursion, do I need to **revert a choice to explore another?**  
+
+- **Yes → Backtracking**  
+- **No → Plain Recursion**  
+
+**Memory Mnemonic:**  
+- Recursion: “one path → one answer”  
+- Backtracking: “try → explore → undo → all answers”  
+
+---
+
+## 5️⃣ Example Comparison
+
+### Recursion Example – Fibonacci
+
+```cpp
+int fib(int n) {
+    if(n <= 1) return n;
+    return fib(n-1) + fib(n-2);
+}
+
+
+Solves one subproblem at a time
+
+No undoing necessary
+
+Backtracking Example – Generate Parentheses
+
+
+void generate(int n, string str, int openCount, int closeCount, vector<string> &res) {
+    if(str.length() == 2 * n) {
+        res.push_back(str);
+        return;
+    }
+    if(openCount < n)
+        generate(n, str + "(", openCount + 1, closeCount, res);
+    if(closeCount < openCount)
+        generate(n, str + ")", openCount, closeCount + 1, res);
+}
+
