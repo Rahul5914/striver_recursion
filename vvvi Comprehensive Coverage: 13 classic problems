@@ -1,0 +1,872 @@
+Unified Template: Every class uses choose → explore → un-choose.
+
+Comprehensive Coverage: 13 classic problems, including:
+
+(Subsets / Permutations / Combination Sum
+
+Letter Combinations / Generate Parentheses / N-Queens
+
+Word Search / Palindrome Partitioning / Restore IP)
+
+Comments: Each step (choose, explore, un-choose) is annotated — perfect for revision.
+
+Edge Cases Handled: Duplicates, pruning, bounds, visited markers, etc.
+
+Reusability: Each class is self-contained — easy to copy/paste in contests or OAs.
+
+
+
+
+
+
+/******************************************
+ * GitHub Notes: Backtracking Collection
+ * Template: choose → explore → un-choose
+ * Problems: Subsets, Permutations, Combination Sum,
+ * Letter Combinations, N-Queens, Generate Parentheses,
+ * Word Search, Palindrome Partitioning, Restore IP,
+ * Combination Sum III
+ ******************************************/
+
+#include <bits/stdc++.h>
+using namespace std;
+
+/******************************************
+ * 1️⃣ Subsets (LC 78)
+ ******************************************/
+class Subsets {
+public:
+    vector<vector<int>> result;
+    vector<int> path;
+
+    void backtrack(vector<int>& nums, int start) {
+        result.push_back(path);  // every path is valid
+        for(int i = start; i < nums.size(); i++) {
+            path.push_back(nums[i]);        // choose
+            backtrack(nums, i + 1);         // explore
+            path.pop_back();                // un-choose
+        }
+    }
+
+    vector<vector<int>> subsets(vector<int>& nums) {
+        backtrack(nums, 0);
+        return result;
+    }
+};
+
+/******************************************
+ * 2️⃣ Subsets II (LC 90)
+ ******************************************/
+class SubsetsII {
+public:
+    vector<vector<int>> result;
+    vector<int> path;
+
+    void backtrack(vector<int>& nums, int start) {
+        result.push_back(path);
+        for(int i = start; i < nums.size(); i++) {
+            if(i > start && nums[i] == nums[i-1]) continue; // skip duplicates
+            path.push_back(nums[i]);
+            backtrack(nums, i + 1);
+            path.pop_back();
+        }
+    }
+
+    vector<vector<int>> subsetsWithDup(vector<int>& nums) {
+        sort(nums.begin(), nums.end());
+        backtrack(nums, 0);
+        return result;
+    }
+};
+
+/******************************************
+ * 3️⃣ Permutations (LC 46)
+ ******************************************/
+class Permutations {
+public:
+    vector<vector<int>> result;
+    vector<int> path;
+    vector<bool> used;
+
+    void backtrack(vector<int>& nums) {
+        if(path.size() == nums.size()) {
+            result.push_back(path);
+            return;
+        }
+        for(int i = 0; i < nums.size(); i++) {
+            if(used[i]) continue;
+            path.push_back(nums[i]);     // choose
+            used[i] = true;
+            backtrack(nums);             // explore
+            used[i] = false;             // un-choose
+            path.pop_back();
+        }
+    }
+
+    vector<vector<int>> permute(vector<int>& nums) {
+        used.resize(nums.size(), false);
+        backtrack(nums);
+        return result;
+    }
+};
+
+/******************************************
+ * 4️⃣ Permutations II (LC 47)
+ ******************************************/
+class PermutationsII {
+public:
+    vector<vector<int>> result;
+    vector<int> path;
+    vector<bool> used;
+
+    void backtrack(vector<int>& nums) {
+        if(path.size() == nums.size()) {
+            result.push_back(path);
+            return;
+        }
+        for(int i = 0; i < nums.size(); i++) {
+            if(used[i]) continue;
+            if(i > 0 && nums[i] == nums[i-1] && !used[i-1]) continue; // skip duplicates
+            path.push_back(nums[i]);
+            used[i] = true;
+            backtrack(nums);
+            used[i] = false;
+            path.pop_back();
+        }
+    }
+
+    vector<vector<int>> permuteUnique(vector<int>& nums) {
+        sort(nums.begin(), nums.end());
+        used.resize(nums.size(), false);
+        backtrack(nums);
+        return result;
+    }
+};
+
+/******************************************
+ * 5️⃣ Combination Sum (LC 39)
+ ******************************************/
+class CombinationSum {
+public:
+    vector<vector<int>> result;
+    vector<int> path;
+
+    void backtrack(vector<int>& candidates, int target, int start) {
+        if(target == 0) {
+            result.push_back(path);
+            return;
+        }
+        for(int i = start; i < candidates.size(); i++) {
+            if(candidates[i] > target) continue;
+            path.push_back(candidates[i]);        // choose
+            backtrack(candidates, target - candidates[i], i); // explore
+            path.pop_back();                       // un-choose
+        }
+    }
+
+    vector<vector<int>> combinationSum(vector<int>& candidates, int target) {
+        backtrack(candidates, target, 0);
+        return result;
+    }
+};
+
+/******************************************
+ * 6️⃣ Combination Sum II (LC 40)
+ ******************************************/
+class CombinationSumII {
+public:
+    vector<vector<int>> result;
+    vector<int> path;
+
+    void backtrack(vector<int>& candidates, int target, int start) {
+        if(target == 0) {
+            result.push_back(path);
+            return;
+        }
+        for(int i = start; i < candidates.size(); i++) {
+            if(i > start && candidates[i] == candidates[i-1]) continue;
+            if(candidates[i] > target) break;
+            path.push_back(candidates[i]);
+            backtrack(candidates, target - candidates[i], i + 1); // no reuse
+            path.pop_back();
+        }
+    }
+
+    vector<vector<int>> combinationSum2(vector<int>& candidates, int target) {
+        sort(candidates.begin(), candidates.end());
+        backtrack(candidates, target, 0);
+        return result;
+    }
+};
+
+/******************************************
+ * 7️⃣ Letter Combinations (LC 17)
+ ******************************************/
+class LetterCombinations {
+public:
+    vector<string> result;
+    string path;
+
+    void backtrack(const string& digits, int index, const vector<string>& mapping) {
+        if(index == digits.size()) {
+            result.push_back(path);
+            return;
+        }
+        string letters = mapping[digits[index]-'0'];
+        for(char c : letters) {
+            path.push_back(c);           // choose
+            backtrack(digits, index + 1, mapping); // explore
+            path.pop_back();             // un-choose
+        }
+    }
+
+    vector<string> letterCombinations(string digits) {
+        if(digits.empty()) return {};
+        vector<string> mapping = {"", "", "abc","def","ghi","jkl","mno","pqrs","tuv","wxyz"};
+        backtrack(digits, 0, mapping);
+        return result;
+    }
+};
+
+/******************************************
+ * 8️⃣ Generate Parentheses (LC 22)
+ ******************************************/
+class GenerateParentheses {
+public:
+    vector<string> result;
+
+    void backtrack(string& path, int open, int close, int n) {
+        if(open == n && close == n) {
+            result.push_back(path);
+            return;
+        }
+        if(open < n) {
+            path.push_back('(');
+            backtrack(path, open + 1, close, n);
+            path.pop_back();
+        }
+        if(close < open) {
+            path.push_back(')');
+            backtrack(path, open, close + 1, n);
+            path.pop_back();
+        }
+    }
+
+    vector<string> generateParenthesis(int n) {
+        string path;
+        backtrack(path, 0, 0, n);
+        return result;
+    }
+};
+
+/******************************************
+ * 9️⃣ N-Queens (LC 51)
+ ******************************************/
+class NQueens {
+public:
+    vector<vector<string>> result;
+    vector<string> board;
+
+    bool isValid(int row, int col, int n) {
+        for(int i = 0; i < row; i++) {
+            if(board[i][col] == 'Q') return false;
+            if(col - (row-i) >= 0 && board[i][col-(row-i)] == 'Q') return false;
+            if(col + (row-i) < n && board[i][col+(row-i)] == 'Q') return false;
+        }
+        return true;
+    }
+
+    void backtrack(int n, int row) {
+        if(row == n) {
+            result.push_back(board);
+            return;
+        }
+        for(int col = 0; col < n; col++) {
+            if(!isValid(row, col, n)) continue;
+            board[row][col] = 'Q';
+            backtrack(n, row + 1);
+            board[row][col] = '.';  // un-choose
+        }
+    }
+
+    vector<vector<string>> solveNQueens(int n) {
+        board = vector<string>(n, string(n, '.'));
+        backtrack(n, 0);
+        return result;
+    }
+};
+
+/******************************************
+ * 🔟 Word Search (LC 79)
+ ******************************************/
+class WordSearch {
+public:
+    bool exist(vector<vector<char>>& board, string word) {
+        int m = board.size(), n = board[0].size();
+        function<bool(int,int,int)> dfs = [&](int i,int j,int index) {
+            if(index == word.size()) return true;
+            if(i<0 || j<0 || i>=m || j>=n || board[i][j] != word[index]) return false;
+
+            char temp = board[i][j];
+            board[i][j] = '#'; // mark visited
+            bool found = dfs(i+1,j,index+1) || dfs(i-1,j,index+1)
+                      || dfs(i,j+1,index+1) || dfs(i,j-1,index+1);
+            board[i][j] = temp; // un-choose
+            return found;
+        };
+
+        for(int i=0;i<m;i++)
+            for(int j=0;j<n;j++)
+                if(dfs(i,j,0)) return true;
+        return false;
+    }
+};
+
+/******************************************
+ * 1️⃣1️⃣ Palindrome Partitioning (LC 131)
+ ******************************************/
+class PalindromePartition {
+public:
+    vector<vector<string>> result;
+    vector<string> path;
+
+    bool isPalindrome(const string& s, int l, int r) {
+        while(l < r) if(s[l++] != s[r--]) return false;
+        return true;
+    }
+
+    void backtrack(const string& s, int start) {
+        if(start == s.size()) {
+            result.push_back(path);
+            return;
+        }
+        for(int end = start; end < s.size(); end++) {
+            if(isPalindrome(s, start, end)) {
+                path.push_back(s.substr(start, end-start+1));
+                backtrack(s, end+1);
+                path.pop_back();
+            }
+        }
+    }
+
+    vector<vector<string>> partition(string s) {
+        backtrack(s, 0);
+        return result;
+    }
+};
+
+/******************************************
+ * 1️⃣2️⃣ Restore IP Addresses (LC 93)
+ ******************************************/
+class RestoreIP {
+public:
+    vector<string> result;
+    vector<string> path;
+
+    bool isValid(const string& s) {
+        if(s.empty() || (s.size() > 1 && s[0] == '0')) return false;
+        int val = stoi(s);
+        return val >= 0 && val <= 255;
+    }
+
+    void backtrack(const string& s, int start) {
+        if(path.size() == 4 && start == s.size()) {
+            string ip = path[0] + "." + path[1] + "." + path[2] + "." + path[3];
+            result.push_back(ip);
+            return;
+        }
+        if(path.size() == 4) return;
+
+        for(int len = 1; len <= 3; len++) {
+            if(start + len > s.size()) break;
+            string part = s.substr(start, len);
+            if(!isValid(part)) continue;
+            path.push_back(part);
+            backtrack(s, start+len);
+            path.pop_back();
+        }
+    }
+
+    vector<string> restoreIpAddresses(string s) {
+        backtrack(s, 0);
+        return result;
+    }
+};
+
+/******************************************
+ * 1️⃣3️⃣ Combination Sum III (LC 216)
+ ******************************************/
+class CombinationSumIII {
+public:
+    vector<vector<int>> result;
+    vector<int> path;
+
+    void backtrack(int k, int n, int start) {
+        if(path.size() == k) {
+            if(n == 0) result.push_back(path);
+            return;
+        }
+        for(int i = start; i <= 9; i++) {
+            if(i > n) break;  // pruning
+            path.push_back(i);          // choose
+            backtrack(k, n-i, i+1);     // explore
+            path.pop_back();             // un-choose
+        }
+    }
+
+    vector<vector<int>> combinationSum3(int k, int n) {
+        backtrack(k, n, 1);
+        return result;
+    }
+};
+
+
+
+
+
+
+
+
+
+#include <bits/stdc++.h>
+using namespace std;
+
+/*
+    BACKTRACKING TEMPLATE:
+    for choice in choices:
+        choose        // add to path / make decision
+        explore       // recurse deeper
+        un-choose     // remove last choice / backtrack
+*/
+
+/**********************************************************
+1️⃣ Subsets (LC 78) - Example: nums = [1,2]
+**********************************************************/
+class Subsets {
+public:
+    vector<vector<int>> result;
+    vector<int> path;
+
+    void backtrack(vector<int>& nums, int start) {
+        result.push_back(path);  // Every path is valid subset
+        // Explore choices
+        for(int i = start; i < nums.size(); i++) {
+            path.push_back(nums[i]);        // choose (add current number)
+            backtrack(nums, i + 1);         // explore next number
+            path.pop_back();                // un-choose (remove last number)
+        }
+    }
+
+    vector<vector<int>> subsets(vector<int>& nums) {
+        backtrack(nums, 0);
+        return result;
+    }
+};
+
+/*
+Dry run for nums = [1,2]:
+start=0: path=[]
+choose 1: path=[1]
+   explore: start=1
+   choose 2: path=[1,2]
+      explore: start=2 -> base case -> add [1,2] to result
+   un-choose: path=[1]
+un-choose: path=[]
+choose 2: path=[2]
+   explore: start=2 -> base case -> add [2] to result
+un-choose: path=[]
+result = [[], [1], [1,2], [2]]
+*/
+
+/**********************************************************
+2️⃣ Subsets II (LC 90) - skip duplicates
+Example: nums = [1,2,2]
+**********************************************************/
+class SubsetsII {
+public:
+    vector<vector<int>> result;
+    vector<int> path;
+
+    void backtrack(vector<int>& nums, int start) {
+        result.push_back(path);
+        for(int i = start; i < nums.size(); i++) {
+            if(i > start && nums[i] == nums[i-1]) continue; // skip duplicates
+            path.push_back(nums[i]);        // choose
+            backtrack(nums, i + 1);         // explore
+            path.pop_back();                // un-choose
+        }
+    }
+
+    vector<vector<int>> subsetsWithDup(vector<int>& nums) {
+        sort(nums.begin(), nums.end());  // sort to handle duplicates
+        backtrack(nums, 0);
+        return result;
+    }
+};
+
+/**********************************************************
+3️⃣ Permutations (LC 46) - nums = [1,2,3]
+**********************************************************/
+class Permutations {
+public:
+    vector<vector<int>> result;
+    vector<int> path;
+    vector<bool> used;
+
+    void backtrack(vector<int>& nums) {
+        if(path.size() == nums.size()) {
+            result.push_back(path);
+            return;
+        }
+        for(int i = 0; i < nums.size(); i++) {
+            if(used[i]) continue;
+            path.push_back(nums[i]);  // choose
+            used[i] = true;
+            backtrack(nums);          // explore
+            used[i] = false;          // un-choose
+            path.pop_back();
+        }
+    }
+
+    vector<vector<int>> permute(vector<int>& nums) {
+        used.resize(nums.size(), false);
+        backtrack(nums);
+        return result;
+    }
+};
+
+/*
+Dry run nums=[1,2]:
+choose 1 -> path=[1], used[0]=true
+   choose 2 -> path=[1,2], used[1]=true -> base case -> add [1,2]
+   un-choose -> path=[1], used[1]=false
+un-choose -> path=[], used[0]=false
+choose 2 -> path=[2], used[1]=true
+   choose 1 -> path=[2,1] -> base case -> add [2,1]
+*/
+
+/**********************************************************
+4️⃣ Permutations II (LC 47) - nums=[1,1,2]
+**********************************************************/
+class PermutationsII {
+public:
+    vector<vector<int>> result;
+    vector<int> path;
+    vector<bool> used;
+
+    void backtrack(vector<int>& nums) {
+        if(path.size() == nums.size()) {
+            result.push_back(path);
+            return;
+        }
+        for(int i = 0; i < nums.size(); i++) {
+            if(used[i]) continue;
+            if(i > 0 && nums[i] == nums[i-1] && !used[i-1]) continue; // skip duplicates
+            path.push_back(nums[i]);
+            used[i] = true;
+            backtrack(nums);
+            used[i] = false;
+            path.pop_back();
+        }
+    }
+
+    vector<vector<int>> permuteUnique(vector<int>& nums) {
+        sort(nums.begin(), nums.end());
+        used.resize(nums.size(), false);
+        backtrack(nums);
+        return result;
+    }
+};
+
+/**********************************************************
+5️⃣ Combination Sum (LC 39) - candidates=[2,3,6,7], target=7
+**********************************************************/
+class CombinationSum {
+public:
+    vector<vector<int>> result;
+    vector<int> path;
+
+    void backtrack(vector<int>& candidates, int target, int start) {
+        if(target == 0) {
+            result.push_back(path);
+            return;
+        }
+        for(int i = start; i < candidates.size(); i++) {
+            if(candidates[i] > target) continue; // pruning
+            path.push_back(candidates[i]);       // choose
+            backtrack(candidates, target - candidates[i], i); // explore, reuse allowed
+            path.pop_back();                      // un-choose
+        }
+    }
+
+    vector<vector<int>> combinationSum(vector<int>& candidates, int target) {
+        backtrack(candidates, target, 0);
+        return result;
+    }
+};
+
+/*
+Example: candidates=[2,3,6,7], target=7
+choose 2 -> path=[2], target=5
+   choose 2 -> path=[2,2], target=3
+      choose 3 -> path=[2,2,3], target=0 -> add to result
+*/
+
+/**********************************************************
+6️⃣ Combination Sum II (LC 40) - candidates=[10,1,2,7,6,1,5], target=8
+**********************************************************/
+class CombinationSumII {
+public:
+    vector<vector<int>> result;
+    vector<int> path;
+
+    void backtrack(vector<int>& candidates, int target, int start) {
+        if(target == 0) {
+            result.push_back(path);
+            return;
+        }
+        for(int i = start; i < candidates.size(); i++) {
+            if(i > start && candidates[i] == candidates[i-1]) continue; // skip duplicates
+            if(candidates[i] > target) break;
+            path.push_back(candidates[i]);
+            backtrack(candidates, target - candidates[i], i + 1); // no reuse
+            path.pop_back();
+        }
+    }
+
+    vector<vector<int>> combinationSum2(vector<int>& candidates, int target) {
+        sort(candidates.begin(), candidates.end());
+        backtrack(candidates, target, 0);
+        return result;
+    }
+};
+
+/**********************************************************
+7️⃣ Letter Combinations (LC 17) - digits="23"
+**********************************************************/
+class LetterCombinations {
+public:
+    vector<string> result;
+    string path;
+
+    void backtrack(const string& digits, int index, const vector<string>& mapping) {
+        if(index == digits.size()) {
+            result.push_back(path);
+            return;
+        }
+        string letters = mapping[digits[index]-'0'];
+        for(char c : letters) {
+            path.push_back(c);                  // choose
+            backtrack(digits, index + 1, mapping); // explore
+            path.pop_back();                    // un-choose
+        }
+    }
+
+    vector<string> letterCombinations(string digits) {
+        if(digits.empty()) return {};
+        vector<string> mapping = {"", "", "abc","def","ghi","jkl","mno","pqrs","tuv","wxyz"};
+        backtrack(digits, 0, mapping);
+        return result;
+    }
+};
+
+/*
+Dry run digits="23":
+choose 'a' -> path="a"
+   choose 'd' -> path="ad" -> add to result
+   choose 'e' -> path="ae" -> add to result
+   choose 'f' -> path="af" -> add to result
+choose 'b' -> path="b" ...
+*/
+
+/**********************************************************
+8️⃣ Generate Parentheses (LC 22) - n=2
+**********************************************************/
+class GenerateParentheses {
+public:
+    vector<string> result;
+
+    void backtrack(string& path, int open, int close, int n) {
+        if(open == n && close == n) {
+            result.push_back(path);
+            return;
+        }
+        if(open < n) {
+            path.push_back('(');
+            backtrack(path, open+1, close, n);
+            path.pop_back();
+        }
+        if(close < open) {
+            path.push_back(')');
+            backtrack(path, open, close+1, n);
+            path.pop_back();
+        }
+    }
+
+    vector<string> generateParenthesis(int n) {
+        string path;
+        backtrack(path, 0, 0, n);
+        return result;
+    }
+};
+
+/**********************************************************
+9️⃣ N-Queens (LC 51) - n=4
+**********************************************************/
+class NQueens {
+public:
+    vector<vector<string>> result;
+    vector<string> board;
+
+    bool isValid(int row, int col, int n) {
+        for(int i=0; i<row; i++) {
+            if(board[i][col] == 'Q') return false; // column
+            if(col-(row-i) >=0 && board[i][col-(row-i)]=='Q') return false; // diag1
+            if(col+(row-i)<n && board[i][col+(row-i)]=='Q') return false; // diag2
+        }
+        return true;
+    }
+
+    void backtrack(int n, int row) {
+        if(row == n) {
+            result.push_back(board);
+            return;
+        }
+        for(int col=0; col<n; col++) {
+            if(!isValid(row,col,n)) continue;
+            board[row][col]='Q';              // choose
+            backtrack(n,row+1);               // explore
+            board[row][col]='.';              // un-choose
+        }
+    }
+
+    vector<vector<string>> solveNQueens(int n) {
+        board=vector<string>(n,string(n,'.'));
+        backtrack(n,0);
+        return result;
+    }
+};
+
+/**********************************************************
+10️⃣ Word Search (LC 79) - board=[["A","B"],["C","D"]], word="ABCD"
+**********************************************************/
+class WordSearch {
+public:
+    bool exist(vector<vector<char>>& board, string word) {
+        int m=board.size(), n=board[0].size();
+        function<bool(int,int,int)> dfs=[&](int i,int j,int index) {
+            if(index==word.size()) return true;
+            if(i<0||j<0||i>=m||j>=n||board[i][j]!=word[index]) return false;
+
+            char temp=board[i][j];
+            board[i][j]='#'; // mark visited
+            bool found=dfs(i+1,j,index+1)||dfs(i-1,j,index+1)||
+                       dfs(i,j+1,index+1)||dfs(i,j-1,index+1);
+            board[i][j]=temp; // un-choose
+            return found;
+        };
+
+        for(int i=0;i<m;i++)
+            for(int j=0;j<n;j++)
+                if(dfs(i,j,0)) return true;
+        return false;
+    }
+};
+
+/**********************************************************
+11️⃣ Palindrome Partitioning (LC 131) - s="aab"
+**********************************************************/
+class PalindromePartitioning {
+public:
+    vector<vector<string>> result;
+    vector<string> path;
+
+    bool isPalindrome(const string& s,int l,int r) {
+        while(l<r) if(s[l++]!=s[r--]) return false;
+        return true;
+    }
+
+    void backtrack(const string& s, int start) {
+        if(start==s.size()) { result.push_back(path); return; }
+
+        for(int end=start; end<s.size(); end++) {
+            if(isPalindrome(s,start,end)) {
+                path.push_back(s.substr(start,end-start+1));
+                backtrack(s,end+1);
+                path.pop_back();
+            }
+        }
+    }
+
+    vector<vector<string>> partition(string s) {
+        backtrack(s,0);
+        return result;
+    }
+};
+
+/**********************************************************
+12️⃣ Restore IP Addresses (LC 93) - s="25525511135"
+**********************************************************/
+class RestoreIPAddresses {
+public:
+    vector<string> result;
+    vector<string> path;
+
+    bool isValid(const string& s) {
+        if(s.empty()||(s.size()>1 && s[0]=='0')) return false;
+        int val=stoi(s);
+        return val>=0 && val<=255;
+    }
+
+    void backtrack(const string& s, int start) {
+        if(path.size()==4 && start==s.size()) {
+            string ip=path[0]+"."+path[1]+"."+path[2]+"."+path[3];
+            result.push_back(ip);
+            return;
+        }
+        if(path.size()==4) return;
+
+        for(int len=1;len<=3;len++) {
+            if(start+len>s.size()) break;
+            string part=s.substr(start,len);
+            if(!isValid(part)) continue;
+            path.push_back(part);
+            backtrack(s,start+len);
+            path.pop_back();
+        }
+    }
+
+    vector<string> restoreIpAddresses(string s) {
+        backtrack(s,0);
+        return result;
+    }
+};
+
+/**********************************************************
+13️⃣ Combination Sum III (LC 216) - k=3, n=7
+**********************************************************/
+class CombinationSumIII {
+public:
+    vector<vector<int>> result;
+    vector<int> path;
+
+    void backtrack(int k,int n,int start) {
+        if(path.size()==k) {
+            if(n==0) result.push_back(path);
+            return;
+        }
+
+        for(int i=start;i<=9;i++) {
+            if(i>n) break;
+            path.push_back(i);
+            backtrack(k,n-i,i+1);
+            path.pop_back();
+        }
+    }
+
+    vector<vector<int>> combinationSum3(int k,int n) {
+        backtrack(k,n,1);
+        return result;
+    }
+};
+
